@@ -1,7 +1,5 @@
-import { Pose, POSE_CONNECTIONS } from '@mediapipe/pose'
+import { Pose, POSE_CONNECTIONS, POSE_LANDMARKS_LEFT, POSE_LANDMARKS_NEUTRAL, POSE_LANDMARKS_RIGHT } from '@mediapipe/pose'
 import type { Results } from '@mediapipe/pose'
-// this import breaks the code
-// import {LandmarkGrid, MeshViewer} from '@mediapipe/control_utils_3d'
 import { Camera } from '@mediapipe/camera_utils'
 import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
 
@@ -9,38 +7,35 @@ export default function simpleDemo (): void {
   const videoElement = document.getElementsByClassName('input_video')[0] as HTMLVideoElement
   const canvasElement = document.getElementsByClassName('output_canvas')[0] as HTMLCanvasElement
   const canvasCtx = canvasElement.getContext('2d') as CanvasRenderingContext2D
-  const landmarkContainer = document.getElementsByClassName('landmark-grid-container')[0] as HTMLDivElement
-  const grid = new LandmarkGrid(landmarkContainer)
 
   function onResults (results: Results): void {
-    if (results.poseLandmarks === null || results.poseLandmarks === undefined) {
-      grid.updateLandmarks([])
-      return
-    }
-
     canvasCtx.save()
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
-    canvasCtx.drawImage(results.segmentationMask, 0, 0,
-      canvasElement.width, canvasElement.height)
 
-    // Only overwrite existing pixels.
-    canvasCtx.globalCompositeOperation = 'source-in'
-    canvasCtx.fillStyle = '#00FF00'
-    canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height)
-
-    // Only overwrite missing pixels.
-    canvasCtx.globalCompositeOperation = 'destination-atop'
     canvasCtx.drawImage(
       results.image, 0, 0, canvasElement.width, canvasElement.height)
 
     canvasCtx.globalCompositeOperation = 'source-over'
-    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
-      { color: '#00FF00', lineWidth: 4 })
-    drawLandmarks(canvasCtx, results.poseLandmarks,
-      { color: '#FF0000', lineWidth: 2 })
-    canvasCtx.restore()
 
-    grid.updateLandmarks(results.poseWorldLandmarks)
+    drawConnectors(
+      canvasCtx, results.poseLandmarks, POSE_CONNECTIONS,
+      { visibilityMin: 0.65, color: 'white' })
+    drawLandmarks(
+      canvasCtx,
+      Object.values(POSE_LANDMARKS_LEFT)
+        .map(index => results.poseLandmarks[index]),
+      { visibilityMin: 0.65, color: 'white', fillColor: 'rgb(255,138,0)' })
+    drawLandmarks(
+      canvasCtx,
+      Object.values(POSE_LANDMARKS_RIGHT)
+        .map(index => results.poseLandmarks[index]),
+      { visibilityMin: 0.65, color: 'white', fillColor: 'rgb(0,217,231)' })
+    drawLandmarks(
+      canvasCtx,
+      Object.values(POSE_LANDMARKS_NEUTRAL)
+        .map(index => results.poseLandmarks[index]),
+      { visibilityMin: 0.65, color: 'white', fillColor: 'black' })
+    canvasCtx.restore()
   }
 
   const pose = new Pose({

@@ -15,7 +15,7 @@ module.exports = {
   plugins: ['@typescript-eslint', 'react'],
   overrides: [
     {
-      files: ['*.ts', '*.tsx'],
+      files: ['src/**/*.ts', 'src/**/*.tsx'],
       extends: [
         'plugin:@typescript-eslint/recommended',
         'standard-with-typescript'

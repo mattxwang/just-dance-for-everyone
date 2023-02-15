@@ -60,20 +60,21 @@ export default function complexDemo (): void {
   // call tick() each time the graph runs.
   const fpsControl = new FPS()
 
-  const landmarkContainer =
-      document.getElementsByClassName('landmark-grid-container')[0] as HTMLDivElement
-  const grid = new LandmarkGrid(landmarkContainer, {
-    connectionColor: 0xCCCCCC,
-    definedColors:
-        [{ name: 'LEFT', value: 0xffa500 }, { name: 'RIGHT', value: 0x00ffff }],
-    range: 2,
-    fitToGrid: true,
-    labelSuffix: 'm',
-    landmarkSize: 2,
-    numCellsPerAxis: 4,
-    showHidden: false,
-    centered: true
-  })
+  // TODO: fix
+  // const landmarkContainer =
+  // document.getElementsByClassName('landmark-grid-container')[0] as HTMLDivElement
+  // const grid = new LandmarkGrid(landmarkContainer, {
+  //   connectionColor: 0xCCCCCC,
+  //   definedColors:
+  //       [{ name: 'LEFT', value: 0xffa500 }, { name: 'RIGHT', value: 0x00ffff }],
+  //   range: 2,
+  //   fitToGrid: true,
+  //   labelSuffix: 'm',
+  //   landmarkSize: 2,
+  //   numCellsPerAxis: 4,
+  //   showHidden: false,
+  //   centered: true
+  // })
 
   let activeEffect = 'mask'
   function onResults (results: Results): void {
@@ -136,14 +137,15 @@ export default function complexDemo (): void {
     }
     canvasCtx.restore()
 
-    if (results.poseWorldLandmarks !== null) {
-      grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
-        { list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT' },
-        { list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT' }
-      ])
-    } else {
-      grid.updateLandmarks([])
-    }
+    // TODO: fix
+    // if (results.poseWorldLandmarks !== null) {
+    //   grid.updateLandmarks(results.poseWorldLandmarks, POSE_CONNECTIONS, [
+    //     { list: Object.values(POSE_LANDMARKS_LEFT), color: 'LEFT' },
+    //     { list: Object.values(POSE_LANDMARKS_RIGHT), color: 'RIGHT' }
+    //   ])
+    // } else {
+    //   grid.updateLandmarks([])
+    // }
   }
 
   const pose = new Pose(options)
