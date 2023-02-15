@@ -32,4 +32,16 @@ const { title } = Astro.props;
 		font-family: Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono,
 			Bitstream Vera Sans Mono, Courier New, monospace;
 	}
+	.btn {
+		@apply font-bold py-2 px-4 rounded;
+	}
+	.btn-blue {
+		@apply bg-blue-500 text-white;
+	}
+	.btn-blue:hover {
+		@apply bg-blue-700;
+	}
+	.large-circle {
+		@apply w-36 h-36 rounded-full flex justify-center items-center text-center p-5 shadow-xl;
+	}
 </style>
