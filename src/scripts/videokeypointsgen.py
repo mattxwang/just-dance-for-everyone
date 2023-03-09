@@ -7,6 +7,7 @@ import json
 directory = '../dance_moves'
 
 mp_holistic = mp.solutions.holistic
+points = ['LEFT_ELBOW', 'RIGHT_ELBOW', 'LEFT_WRIST', 'RIGHT_WRIST', 'LEFT_HIP', 'RIGHT_HIP', 'LEFT_KNEE', 'RIGHT_KNEE', 'LEFT_ANKLE', 'RIGHT_ANKLE']
 
 index_to_pose = {
     0: 'NOSE',
@@ -35,7 +36,7 @@ index_to_pose = {
     23: 'LEFT_HIP',
     24: 'RIGHT_HIP',
     25: 'LEFT_KNEE',
-    26: 'RIGHT_KNEWW',
+    26: 'RIGHT_KNEE',
     27: 'LEFT_ANKLE',
     28: 'RIGHT_ANKLE',
     29: 'LEFT_HEEL',
@@ -43,6 +44,35 @@ index_to_pose = {
     31: 'LEFT_FOOT_INDEX',
     32: 'RIGHT_FOOT_INDEX'
 }
+
+def get_min_and_max_keypoints(frames, point):
+    indices = set([])
+    p = [ frame[point] for frame in frames ]
+    x_p = [ x['x'] for x in p ]
+    indices.add(np.argmax(x_p))
+    indices.add(np.argmin(x_p))
+    y_p = [ y['y'] for y in p ]
+    indices.add(np.argmax(y_p))
+    indices.add(np.argmin(y_p))
+    return sorted(indices)
+
+def find_runs(frames):
+    run = []
+    median = 0
+    prev_frame = frames[0]
+    indices = set([])
+    for frame in frames: 
+        cur_frame = frame 
+        if cur_frame - prev_frame <= 2: 
+            run.append(cur_frame)
+        else: 
+            median = np.median(run)
+            indices.add(np.floor(median))
+            run = [cur_frame]
+        prev_frame = cur_frame
+    median = np.median(run)
+    indices.add(np.floor(median))
+    return sorted(indices)
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose 
@@ -78,7 +108,12 @@ for filename in os.listdir(directory):
             pose_value = results.pose_landmarks.landmark[key]
             frame[p] = {'x': pose_value.x, 'y': pose_value.y, 'z': pose_value.y, 'visibility': pose_value.visibility}
         dance_frames.append(frame)
-    g.write(json.dumps(dance_frames))
+    indices = set([])
+    for p in points: 
+        indices = indices.union(get_min_and_max_keypoints(dance_frames, p))
+    impt_keypoints = find_runs(sorted(indices))
+    keypoint_json = {"impt_keypoints": impt_keypoints, 'frames': dance_frames}
+    g.write(json.dumps(keypoint_json))
     g.close()
     cap.release()
 pose.close()
