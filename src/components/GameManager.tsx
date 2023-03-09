@@ -28,18 +28,34 @@ export default function GameManager (): JSX.Element {
   })
   const [multiplier, setMultiplier] = useState(1)
 
+  const writeUIBackground = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
+    canvasCtx.globalAlpha = 0.85
+    canvasCtx.fillStyle = 'lightblue'
+
+    canvasCtx.fillRect(0, 0, canvasElement.width, 72)
+    canvasCtx.fillRect(0, canvasElement.height - 36, canvasElement.width, 36)
+
+    canvasCtx.globalAlpha = 1.0
+  }
+
   const writeGradeInformation = (grade: string, canvasCtx: CanvasRenderingContext2D): void => {
-    canvasCtx.font = '48px serif'
-    canvasCtx.fillText(`grade: ${grade}`, 100, 100)
+    canvasCtx.fillStyle = 'black'
+    canvasCtx.font = 'bold 48px Poppins'
+    canvasCtx.fillText(grade, 50, 50)
   }
 
   const writeSongInformation = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
-    canvasCtx.font = '36px serif'
-    canvasCtx.fillText(`current song: ${songData.name}`, 100, canvasElement.height - 100)
+    canvasCtx.fillStyle = 'black'
+    canvasCtx.font = '24px Poppins'
+    canvasCtx.fillText(`song: ${songData.name}`, 50, canvasElement.height - 12)
+    // TODO: translate and right-align
+    canvasCtx.fillText(`bpm: ${clampBPM(songData.bpm)} | high intensity`, canvasElement.width - 400, canvasElement.height - 12)
   }
 
   const writeDanceInformation = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
-    canvasCtx.fillText(`${onBeat ? 'dance' : ''}`, canvasElement.width - 100, canvasElement.height - 100)
+    canvasCtx.fillStyle = 'black'
+    canvasCtx.font = '36px Poppins'
+    canvasCtx.fillText(`${onBeat ? 'dance' : ''}`, canvasElement.width - 200, canvasElement.height / 2)
   }
 
   function loadSong (file: string, name?: string): void {
@@ -104,6 +120,10 @@ export default function GameManager (): JSX.Element {
     const halfSecBest = Math.max(...(bestScores.slice(0, 15)))
     // const fiveSecBest = Math.max(...bestScores)
 
+    // set up background elements
+    writeUIBackground(canvasCtx, canvasElement)
+
+    // write text
     writeGradeInformation(grade(halfSecBest), canvasCtx)
     writeSongInformation(canvasCtx, canvasElement)
     writeDanceInformation(canvasCtx, canvasElement)
@@ -126,7 +146,7 @@ export default function GameManager (): JSX.Element {
   }, [songData, onBeat])
 
   return (<>
-    <canvas width="1280px" height="720px" style={{ width: '100vw' }} ref={canvasRef}></canvas>
+    <canvas width="1920px" height="1080px" style={{ width: '100vw' }} ref={canvasRef}></canvas>
     <video style={{ display: 'none' }} ref={videoRef}></video>
     <AudioController setOnBeat={setOnBeat} multiplier={multiplier} {...songData} />
     <div className="lg:grid lg:grid-cols-2 lg:gap-4">
