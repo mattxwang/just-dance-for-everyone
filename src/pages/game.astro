@@ -1,0 +1,13 @@
+---
+import GameManager from '../components/GameManager';
+import Layout from '../layouts/Layout.astro';
+
+---
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils_3d/control_utils_3d.js" crossorigin="anonymous" ></script>
+
+<Layout title={'Game Run Demo'}>
+  <div class="container">
+    <GameManager client:load />
+  </div>
+</Layout>
