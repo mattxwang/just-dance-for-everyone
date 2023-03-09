@@ -5,16 +5,21 @@ import FileUpload from './beats-me/FileUpload'
 import { grade, normalizeScore, xyAngleDeg } from '../util/scores'
 import { guess } from 'web-audio-beat-detector'
 import { clampBPM, MULTIPLIER_OPTIONS, PRESET_OPTIONS } from '../util/beats'
-import AudioController from './beats-me/AudioController'
 import SongInformation from './beats-me/SongInformation'
 import Select from './beats-me/Select'
 import { createPose, drawAllLandmarks, startCamera } from '../util/mp'
+import { writeDanceInformation, writeOverallGradeInformation, writeSongInformation, writeUIBackground } from '../util/ui'
+
+const PUBLIC_DANCE_URL = '/videos/dance_2.mp4'
 
 export default function GameManager (): JSX.Element {
   const audioContextContainer = useRef<AudioContext | null>(null)
-  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const inputVideoRef = useRef<HTMLVideoElement | null>(null)
+  const danceVideoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const poseRef = useRef<Pose | null>(null)
+  const beatIntervalContainer = useRef<number | undefined>(undefined)
+  const danceIntervalContainer = useRef<number | undefined>(undefined)
   const bestScoresRef = useRef<number[]>(new Array(30 * 5).fill(0))
   const bestScores = bestScoresRef.current
 
@@ -27,36 +32,6 @@ export default function GameManager (): JSX.Element {
     offset: 0
   })
   const [multiplier, setMultiplier] = useState(1)
-
-  const writeUIBackground = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
-    canvasCtx.globalAlpha = 0.85
-    canvasCtx.fillStyle = 'lightblue'
-
-    canvasCtx.fillRect(0, 0, canvasElement.width, 72)
-    canvasCtx.fillRect(0, canvasElement.height - 36, canvasElement.width, 36)
-
-    canvasCtx.globalAlpha = 1.0
-  }
-
-  const writeGradeInformation = (grade: string, canvasCtx: CanvasRenderingContext2D): void => {
-    canvasCtx.fillStyle = 'black'
-    canvasCtx.font = 'bold 48px Poppins'
-    canvasCtx.fillText(grade, 50, 50)
-  }
-
-  const writeSongInformation = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
-    canvasCtx.fillStyle = 'black'
-    canvasCtx.font = '24px Poppins'
-    canvasCtx.fillText(`song: ${songData.name}`, 50, canvasElement.height - 12)
-    // TODO: translate and right-align
-    canvasCtx.fillText(`bpm: ${clampBPM(songData.bpm)} | high intensity`, canvasElement.width - 400, canvasElement.height - 12)
-  }
-
-  const writeDanceInformation = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
-    canvasCtx.fillStyle = 'black'
-    canvasCtx.font = '36px Poppins'
-    canvasCtx.fillText(`${onBeat ? 'dance' : ''}`, canvasElement.width - 200, canvasElement.height / 2)
-  }
 
   function loadSong (file: string, name?: string): void {
     if (audioContextContainer.current == null) {
@@ -124,20 +99,44 @@ export default function GameManager (): JSX.Element {
     writeUIBackground(canvasCtx, canvasElement)
 
     // write text
-    writeGradeInformation(grade(halfSecBest), canvasCtx)
-    writeSongInformation(canvasCtx, canvasElement)
-    writeDanceInformation(canvasCtx, canvasElement)
+    // TODO: change overall grade to be static
+    writeOverallGradeInformation(canvasCtx, canvasElement, grade(halfSecBest))
+    writeSongInformation(canvasCtx, canvasElement, songData.name, clampBPM(songData.bpm))
+    writeDanceInformation(canvasCtx, canvasElement, onBeat, grade(halfSecBest))
+  }
+
+  function onPlay (): void {
+    setTimeout(() => {
+      if (danceVideoRef.current === null) return
+      danceVideoRef.current.src = PUBLIC_DANCE_URL
+      beatIntervalContainer.current = setInterval(() => {
+        setOnBeat(true)
+        setTimeout(() => {
+          setOnBeat(false)
+        }, 200)
+      }, (songData.period * 1000) / multiplier)
+      danceIntervalContainer.current = setInterval(() => {
+        if (danceVideoRef.current === null) return
+        danceVideoRef.current.currentTime = 0
+        void danceVideoRef.current.play()
+      }, (songData.period * 1000) / multiplier * 4)
+    }, songData.offset * 1000)
+  }
+
+  function onPause (): void {
+    clearInterval(beatIntervalContainer.current)
+    clearInterval(danceIntervalContainer.current)
   }
 
   // boilerplate to start audio context, MP
   useEffect(() => {
     loadSong(`/songs/${PRESET_OPTIONS[0].value}`, PRESET_OPTIONS[0].value)
 
-    if (videoRef.current === null) return
+    if (inputVideoRef.current === null) return
 
-    const videoElement = videoRef.current
+    const inputVideoElement = inputVideoRef.current
     poseRef.current = createPose()
-    startCamera(poseRef.current, videoElement)
+    startCamera(poseRef.current, inputVideoElement)
   }, [])
 
   useEffect(() => {
@@ -147,8 +146,20 @@ export default function GameManager (): JSX.Element {
 
   return (<>
     <canvas width="1920px" height="1080px" style={{ width: '100vw' }} ref={canvasRef}></canvas>
-    <video style={{ display: 'none' }} ref={videoRef}></video>
-    <AudioController setOnBeat={setOnBeat} multiplier={multiplier} {...songData} />
+    <video style={{ display: 'none' }} ref={inputVideoRef}></video>
+    {/* TODO: this is a rough heuristic for the game starting */}
+    <video ref={danceVideoRef}
+      // src={PUBLIC_DANCE_URL}
+      style={{
+        position: 'absolute',
+        top: 48, // note: this is a hard-coded value
+        height: '25%',
+        border: '1px solid black'
+      }}
+      autoPlay
+      muted
+    />
+    <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} controls></audio>
     <div className="lg:grid lg:grid-cols-2 lg:gap-4">
       <div className="max-w-md rounded overflow-hidden shadow-lg px-3 py-4 mb-2 bg-white text-left">
         <SongInformation {...songData}/>
