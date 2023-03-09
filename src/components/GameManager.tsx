@@ -152,7 +152,8 @@ export default function GameManager (): JSX.Element {
       // src={PUBLIC_DANCE_URL}
       style={{
         position: 'absolute',
-        top: 48, // note: this is a hard-coded value
+        top: 0, // note: this is a hard-coded value
+        right: 0,
         height: '25%',
         border: '1px solid black'
       }}
