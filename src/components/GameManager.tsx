@@ -21,10 +21,12 @@ export default function GameManager (): JSX.Element {
   const poseRef = useRef<Pose | null>(null)
   const beatIntervalContainer = useRef<number | undefined>(undefined)
   const danceIntervalContainer = useRef<number | undefined>(undefined)
+  const beatCounter = useRef<number>(0)
   const bestScoresRef = useRef<number[]>(new Array(30 * 5).fill(0))
   const bestScores = bestScoresRef.current
 
   const [onBeat, setOnBeat] = useState(false)
+  // const [beatCounter, setBeatCounter] = useState(0)
   const [songData, setSongData] = useState({
     name: '',
     path: '',
@@ -62,6 +64,8 @@ export default function GameManager (): JSX.Element {
     const canvasElement = canvasRef.current
     const canvasCtx = canvasElement.getContext('2d') as CanvasRenderingContext2D
 
+    const currentKeyframe = DANCES[0].keyframes[beatCounter.current % DANCES[0].keyframes.length]
+
     // pre-work: clear canvas, re-draw video
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
     canvasCtx.drawImage(
@@ -74,7 +78,7 @@ export default function GameManager (): JSX.Element {
     writeUIBackground(canvasCtx, canvasElement)
 
     // target pose
-    drawImportantLandmarks(canvasCtx, DANCES[0].keyframes[0])
+    drawImportantLandmarks(canvasCtx, currentKeyframe)
 
     if (results.poseLandmarks === undefined) {
       return
@@ -84,7 +88,7 @@ export default function GameManager (): JSX.Element {
     drawAllLandmarks(canvasCtx, results.poseLandmarks)
 
     // then, userspace code :)
-    const score = Math.max((1 - 10 * diffPosesSubsetXY(results.poseLandmarks, DANCES[0].keyframes[0])), 0) * 100
+    const score = Math.max((1 - 10 * diffPosesSubsetXY(results.poseLandmarks, currentKeyframe)), 0) * 100
     bestScores.unshift(score)
     bestScores.pop()
 
@@ -105,6 +109,7 @@ export default function GameManager (): JSX.Element {
       danceVideoRef.current.style.border = '1px solid black'
       beatIntervalContainer.current = setInterval(() => {
         setOnBeat(true)
+        beatCounter.current += 1
         setTimeout(() => {
           setOnBeat(false)
         }, 200)
