@@ -4,7 +4,7 @@ import numpy as np
 import sys
 import os
 import json
-directory = '../dance_moves'
+directory = '../public/dance_moves'
 
 mp_holistic = mp.solutions.holistic
 points = ['LEFT_ELBOW', 'RIGHT_ELBOW', 'LEFT_WRIST', 'RIGHT_WRIST', 'LEFT_HIP', 'RIGHT_HIP', 'LEFT_KNEE', 'RIGHT_KNEE', 'LEFT_ANKLE', 'RIGHT_ANKLE']
