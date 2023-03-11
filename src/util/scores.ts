@@ -1,4 +1,7 @@
+import { POSE_LANDMARKS } from '@mediapipe/pose'
 import type { NormalizedLandmark, NormalizedLandmarkList } from '@mediapipe/pose'
+import { IMPORTANT_LANDMARKS } from '../dances/dances'
+import { getPoseLandmarkIndexByKey } from './mp'
 
 /**
  * convex "smoothing" to reward good dances :)
@@ -40,6 +43,8 @@ export function xyAngleDeg (l1: NormalizedLandmark, l2: NormalizedLandmark): num
 }
 
 export function cartesianDistance (l1: NormalizedLandmark, l2: NormalizedLandmark): number {
+  // TODO: actually fix this
+  if (l1 === undefined || l2 === undefined) return 0
   return Math.sqrt(
     (l1.x - l2.x) ** 2 +
     (l1.y - l2.y) ** 2 +
@@ -47,6 +52,19 @@ export function cartesianDistance (l1: NormalizedLandmark, l2: NormalizedLandmar
   )
 }
 
-export function diffPoses (inputPose: NormalizedLandmarkList, referencePose: NormalizedLandmarkList): number {
-  return inputPose.map((landmark, i) => cartesianDistance(landmark, referencePose[i])).reduce((p, c) => p + c, 0)
+export function cartesianDistanceXY (l1: NormalizedLandmark, l2: NormalizedLandmark): number {
+  // TODO: actually fix this
+  if (l1 === undefined || l2 === undefined) return 0
+  return Math.sqrt(
+    (l1.x - l2.x) ** 2 +
+    (l1.y - l2.y) ** 2
+  )
+}
+
+export function diffPosesSubsetXY (inputPose: NormalizedLandmarkList, referencePose: NormalizedLandmarkList): number {
+  return Array.from(IMPORTANT_LANDMARKS.keys()).map(key => {
+    if (!(key in POSE_LANDMARKS)) return 0
+    const index = getPoseLandmarkIndexByKey(key)
+    return cartesianDistanceXY(inputPose[index], referencePose[index])
+  }).reduce((p, c) => p + c, 0) / IMPORTANT_LANDMARKS.size
 }

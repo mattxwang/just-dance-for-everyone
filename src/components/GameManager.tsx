@@ -1,13 +1,12 @@
 import type { Pose, Results } from '@mediapipe/pose'
-import { POSE_LANDMARKS_LEFT } from '@mediapipe/pose'
 import { useEffect, useRef, useState } from 'react'
 import FileUpload from './beats-me/FileUpload'
-import { diffPoses, grade, normalizeScore, xyAngleDeg } from '../util/scores'
+import { diffPosesSubsetXY, grade } from '../util/scores'
 import { guess } from 'web-audio-beat-detector'
 import { clampBPM, MULTIPLIER_OPTIONS, PRESET_OPTIONS } from '../util/beats'
 import SongInformation from './beats-me/SongInformation'
 import Select from './beats-me/Select'
-import { createPose, drawAllLandmarks, startCamera } from '../util/mp'
+import { createPose, drawAllLandmarks, drawImportantLandmarks, startCamera } from '../util/mp'
 import { writeDanceInformation, writeOverallGradeInformation, writeSongInformation, writeUIBackground } from '../util/ui'
 
 import DANCES from '../dances/dances'
@@ -47,7 +46,6 @@ export default function GameManager (): JSX.Element {
       .then(async (audioBuffer) => await guess(audioBuffer))
       .then((obj) => {
         const clampedBPM = clampBPM(obj.bpm)
-        console.log(`loaded: ${name ?? file}`)
         setSongData({
           name: name ?? file,
           path: file,
@@ -72,38 +70,30 @@ export default function GameManager (): JSX.Element {
     // necessary to "overlay"
     canvasCtx.globalCompositeOperation = 'source-over'
 
+    // set up background elements
+    writeUIBackground(canvasCtx, canvasElement)
+
+    // target pose
+    drawImportantLandmarks(canvasCtx, DANCES[0].keyframes[0])
+
+    if (results.poseLandmarks === undefined) {
+      return
+    }
+
     // draw the landmark diagrams
     drawAllLandmarks(canvasCtx, results.poseLandmarks)
 
     // then, userspace code :)
-    const seAngle = xyAngleDeg(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ELBOW])
-    const ehAngle = xyAngleDeg(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_ELBOW], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_WRIST])
-    const shAngle = xyAngleDeg(results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_SHOULDER], results.poseLandmarks[POSE_LANDMARKS_LEFT.LEFT_WRIST])
-
-    function scoreStraightLeftArm (): number {
-      const seAngleTarget = 0
-      const ehAngleTarget = 0
-
-      const seAngleScore = seAngleTarget - seAngle
-      const ehAngleScore = ehAngleTarget - ehAngle
-
-      return normalizeScore(Math.abs(seAngleScore) + Math.abs(ehAngleScore) + Math.abs(shAngle), 135)
-    }
-
-    // const score = scoreStraightLeftArm()
-    const score = diffPoses(results.poseLandmarks, DANCES[0].keyframes[0])
+    const score = Math.max((1 - 10 * diffPosesSubsetXY(results.poseLandmarks, DANCES[0].keyframes[0])), 0) * 100
     bestScores.unshift(score)
     bestScores.pop()
 
     const halfSecBest = Math.max(...(bestScores.slice(0, 15)))
     // const fiveSecBest = Math.max(...bestScores)
 
-    // set up background elements
-    writeUIBackground(canvasCtx, canvasElement)
-
     // write text
     // TODO: change overall grade to be static
-    writeOverallGradeInformation(canvasCtx, canvasElement, grade(halfSecBest))
+    writeOverallGradeInformation(canvasCtx, canvasElement, `${grade(halfSecBest)} (${halfSecBest.toFixed(1)})`)
     writeSongInformation(canvasCtx, canvasElement, songData.name, clampBPM(songData.bpm))
     writeDanceInformation(canvasCtx, canvasElement, onBeat, grade(halfSecBest))
   }
@@ -112,6 +102,7 @@ export default function GameManager (): JSX.Element {
     setTimeout(() => {
       if (danceVideoRef.current === null) return
       danceVideoRef.current.src = PUBLIC_DANCE_URL
+      danceVideoRef.current.style.border = '1px solid black'
       beatIntervalContainer.current = setInterval(() => {
         setOnBeat(true)
         setTimeout(() => {
@@ -129,6 +120,11 @@ export default function GameManager (): JSX.Element {
   function onPause (): void {
     clearInterval(beatIntervalContainer.current)
     clearInterval(danceIntervalContainer.current)
+    // TODO: this is hacky
+    if (danceVideoRef.current === null) return
+    // @ts-expect-error hacky solution, hits a "null" URL
+    danceVideoRef.current.src = null
+    danceVideoRef.current.style.border = 'none'
   }
 
   // boilerplate to start audio context, MP
@@ -150,20 +146,17 @@ export default function GameManager (): JSX.Element {
   return (<>
     <canvas width="1920px" height="1080px" style={{ width: '100vw' }} ref={canvasRef}></canvas>
     <video style={{ display: 'none' }} ref={inputVideoRef}></video>
-    {/* TODO: this is a rough heuristic for the game starting */}
     <video ref={danceVideoRef}
-      // src={PUBLIC_DANCE_URL}
       style={{
         position: 'absolute',
         top: 0, // note: this is a hard-coded value
         right: 0,
-        height: '25%',
-        border: '1px solid black'
+        height: '25%'
       }}
       autoPlay
       muted
     />
-    <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} controls></audio>
+    <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onPause} controls></audio>
     <div className="lg:grid lg:grid-cols-2 lg:gap-4">
       <div className="max-w-md rounded overflow-hidden shadow-lg px-3 py-4 mb-2 bg-white text-left">
         <SongInformation {...songData}/>
