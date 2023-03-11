@@ -2,13 +2,15 @@ import type { Pose, Results } from '@mediapipe/pose'
 import { POSE_LANDMARKS_LEFT } from '@mediapipe/pose'
 import { useEffect, useRef, useState } from 'react'
 import FileUpload from './beats-me/FileUpload'
-import { grade, normalizeScore, xyAngleDeg } from '../util/scores'
+import { diffPoses, grade, normalizeScore, xyAngleDeg } from '../util/scores'
 import { guess } from 'web-audio-beat-detector'
 import { clampBPM, MULTIPLIER_OPTIONS, PRESET_OPTIONS } from '../util/beats'
 import SongInformation from './beats-me/SongInformation'
 import Select from './beats-me/Select'
 import { createPose, drawAllLandmarks, startCamera } from '../util/mp'
 import { writeDanceInformation, writeOverallGradeInformation, writeSongInformation, writeUIBackground } from '../util/ui'
+
+import DANCES from '../dances/dances'
 
 const PUBLIC_DANCE_URL = '/videos/dance_2.mp4'
 
@@ -88,7 +90,8 @@ export default function GameManager (): JSX.Element {
       return normalizeScore(Math.abs(seAngleScore) + Math.abs(ehAngleScore) + Math.abs(shAngle), 135)
     }
 
-    const score = scoreStraightLeftArm()
+    // const score = scoreStraightLeftArm()
+    const score = diffPoses(results.poseLandmarks, DANCES[0].keyframes[0])
     bestScores.unshift(score)
     bestScores.pop()
 

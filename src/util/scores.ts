@@ -1,4 +1,4 @@
-import type { NormalizedLandmark } from '@mediapipe/pose'
+import type { NormalizedLandmark, NormalizedLandmarkList } from '@mediapipe/pose'
 
 /**
  * convex "smoothing" to reward good dances :)
@@ -45,4 +45,8 @@ export function cartesianDistance (l1: NormalizedLandmark, l2: NormalizedLandmar
     (l1.y - l2.y) ** 2 +
     (l1.z - l2.z) ** 2
   )
+}
+
+export function diffPoses (inputPose: NormalizedLandmarkList, referencePose: NormalizedLandmarkList): number {
+  return inputPose.map((landmark, i) => cartesianDistance(landmark, referencePose[i])).reduce((p, c) => p + c, 0)
 }
