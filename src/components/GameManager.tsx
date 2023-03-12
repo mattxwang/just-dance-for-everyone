@@ -78,8 +78,17 @@ export default function GameManager (): JSX.Element {
 
     // pre-work: clear canvas, re-draw video
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
+
+    const flipCanvas = (): void => {
+      canvasCtx.translate(canvasElement.width, 0)
+      canvasCtx.scale(-1, 1)
+    }
+
+    // flip canvas just for the image
+    flipCanvas()
     canvasCtx.drawImage(
       results.image, 0, 0, canvasElement.width, canvasElement.height)
+    flipCanvas()
 
     // necessary to "overlay"
     canvasCtx.globalCompositeOperation = 'source-over'
@@ -104,7 +113,9 @@ export default function GameManager (): JSX.Element {
     const currentKeyframe = keyframes[currentFrameIndexRef.current]
 
     if (debugMode) {
+      flipCanvas()
       drawImportantLandmarks(canvasCtx, currentKeyframe)
+      flipCanvas()
     }
 
     if (results.poseLandmarks === undefined) {
@@ -113,7 +124,9 @@ export default function GameManager (): JSX.Element {
 
     // draw the landmark diagrams
     if (debugMode) {
+      flipCanvas()
       drawAllLandmarks(canvasCtx, results.poseLandmarks)
+      flipCanvas()
     }
 
     // then, userspace code :)
