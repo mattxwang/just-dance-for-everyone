@@ -42,6 +42,7 @@ export default function GameManager (): JSX.Element {
     offset: 0
   })
   const [multiplier, setMultiplier] = useState(1)
+  const [debugMode, setDebugMode] = useState(true)
 
   // ref helpers
   const bestScores = bestScoresRef.current
@@ -105,14 +106,18 @@ export default function GameManager (): JSX.Element {
 
     const currentKeyframe = keyframes[currentFrameIndexRef.current]
 
-    drawImportantLandmarks(canvasCtx, currentKeyframe)
+    if (debugMode) {
+      drawImportantLandmarks(canvasCtx, currentKeyframe)
+    }
 
     if (results.poseLandmarks === undefined) {
       return
     }
 
     // draw the landmark diagrams
-    drawAllLandmarks(canvasCtx, results.poseLandmarks)
+    if (debugMode) {
+      drawAllLandmarks(canvasCtx, results.poseLandmarks)
+    }
 
     // then, userspace code :)
     const score = Math.max((1 - 10 * diffPosesSubsetXY(results.poseLandmarks, currentKeyframe)), 0) * 120
@@ -122,7 +127,6 @@ export default function GameManager (): JSX.Element {
     const halfSecBest = Math.max(...bestScores)
 
     // write text
-    // TODO: change overall grade to be static
     writeOverallGradeInformation(canvasCtx, canvasElement, `${grade(overallScoreRef.current / overallScoreMoves.current)} [${(overallScoreRef.current / overallScoreMoves.current).toFixed(0)}] (${overallScoreRef.current.toFixed(0)})`)
     writeSongInformation(canvasCtx, canvasElement, songData.name, effectiveBpm)
     writeDanceInformation(canvasCtx, canvasElement, onBeat, `${grade(halfSecBest)} (${halfSecBest.toFixed(1)})`)
@@ -190,7 +194,7 @@ export default function GameManager (): JSX.Element {
   useEffect(() => {
     if (poseRef.current === null) return
     poseRef.current.onResults(onResults)
-  }, [active, songData, onBeat, multiplier])
+  }, [active, songData, onBeat, multiplier, debugMode])
 
   return (<>
     <canvas width="1920px" height="1080px" style={{ width: '100vw' }} ref={canvasRef}></canvas>
@@ -220,7 +224,22 @@ export default function GameManager (): JSX.Element {
             </dd>
             <dt className="text-gray-500" id="preset-songs">Preset Songs</dt>
             <dd className="text-gray-900">
-            <Select options={PRESET_OPTIONS} updateValue={(song) => { loadSong(`/songs/${song}`, song) }} />
+              <Select options={PRESET_OPTIONS} updateValue={(song) => { loadSong(`/songs/${song}`, song) }} />
+            </dd>
+            <dt className="text-gray-500" id="preset-songs">Debug Mode</dt>
+            <dd className="text-gray-900">
+              <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={debugMode}
+                  onChange={() => { setDebugMode(!debugMode) }}
+                  name="toggle"
+                  id="toggle"
+                  className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                />
+                <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+              </div>
             </dd>
           </dl>
         </div>
