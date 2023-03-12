@@ -57,37 +57,30 @@ export const drawAllLandmarks = (canvasCtx: CanvasRenderingContext2D, poseLandma
     { visibilityMin: 0.65, color: 'black', fillColor: 'black' })
 }
 
+const LEFT_ARR = Object.keys(POSE_LANDMARKS_LEFT)
+  // @ts-expect-error TODO: fix index types
+  .filter(index => IMPORTANT_LANDMARKS.has(index))
+  // @ts-expect-error TODO: fix index types
+  .map(index => POSE_LANDMARKS_LEFT[index])
+
+const RIGHT_ARR = Object.keys(POSE_LANDMARKS_RIGHT)
+  // @ts-expect-error TODO: fix index types
+  .filter(index => IMPORTANT_LANDMARKS.has(index))
+  // @ts-expect-error TODO: fix index types
+  .map(index => POSE_LANDMARKS_RIGHT[index])
+
 export const drawImportantLandmarks = (canvasCtx: CanvasRenderingContext2D, poseLandmarks: NormalizedLandmarkList): void => {
   drawConnectors(
     canvasCtx, poseLandmarks, POSE_CONNECTIONS,
     { visibilityMin: 0.65, color: 'white' })
   drawLandmarks(
     canvasCtx,
-    Object.keys(POSE_LANDMARKS_LEFT)
-      // @ts-expect-error TODO: fix index types
-      .filter(index => IMPORTANT_LANDMARKS.has(index))
-      // @ts-expect-error TODO: fix index types
-      .map(index => POSE_LANDMARKS_LEFT[index])
-      .map(index => poseLandmarks[index]),
+    LEFT_ARR.map(index => poseLandmarks[index]),
     { visibilityMin: 0.65, color: 'white', fillColor: 'rgb(255,138,0)' })
   drawLandmarks(
     canvasCtx,
-    Object.keys(POSE_LANDMARKS_RIGHT)
-      // @ts-expect-error TODO: fix index types
-      .filter(index => IMPORTANT_LANDMARKS.has(index))
-      // @ts-expect-error TODO: fix index types
-      .map(index => POSE_LANDMARKS_RIGHT[index])
-      .map(index => poseLandmarks[index]),
+    RIGHT_ARR.map(index => poseLandmarks[index]),
     { visibilityMin: 0.65, color: 'white', fillColor: 'rgb(0,217,231)' })
-  drawLandmarks(
-    canvasCtx,
-    Object.keys(POSE_LANDMARKS_NEUTRAL)
-      // @ts-expect-error TODO: fix index types
-      .filter(index => IMPORTANT_LANDMARKS.has(index))
-      // @ts-expect-error TODO: fix index types
-      .map(index => POSE_LANDMARKS_NEUTRAL[index])
-      .map(index => poseLandmarks[index]),
-    { visibilityMin: 0.65, color: 'white', fillColor: 'black' })
 }
 
 export const getPoseLandmarkIndexByKey = (key: PythonLandmarkKeys): number => {

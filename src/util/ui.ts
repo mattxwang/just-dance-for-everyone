@@ -1,3 +1,5 @@
+import { intensity } from './scores'
+
 export const writeUIBackground = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
   canvasCtx.globalAlpha = 0.85
   canvasCtx.fillStyle = 'lightblue'
@@ -19,12 +21,19 @@ export const writeSongInformation = (canvasCtx: CanvasRenderingContext2D, canvas
   canvasCtx.font = '24px Poppins'
   canvasCtx.fillText(`song: ${name}`, 50, canvasElement.height - 12)
   // TODO: translate and right-align
-  canvasCtx.fillText(`bpm: ${bpm} | high intensity`, canvasElement.width - 400, canvasElement.height - 12)
+  canvasCtx.fillText(`bpm: ${bpm} | ${intensity(bpm)} intensity`, canvasElement.width - 400, canvasElement.height - 12)
 }
 
 export const writeDanceInformation = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement, onBeat: boolean, grade: string): void => {
   canvasCtx.fillStyle = 'black'
   canvasCtx.font = '36px Poppins'
-  canvasCtx.fillText(`${onBeat ? 'dance' : ''}`, canvasElement.width - 200, canvasElement.height / 2)
-  canvasCtx.fillText(`${onBeat ? grade : ''}`, canvasElement.width - 200, canvasElement.height / 2 + 200)
+  canvasCtx.fillText(`${onBeat ? 'hit' : ''}`, canvasElement.width - 250, canvasElement.height / 2)
+
+  canvasCtx.globalAlpha = 0.85
+  canvasCtx.fillStyle = 'lightblue'
+  canvasCtx.fillRect(canvasElement.width - 320, canvasElement.height / 2 + 40, 320, 96)
+
+  canvasCtx.globalAlpha = 1.0
+  canvasCtx.fillStyle = 'black'
+  canvasCtx.fillText(grade, canvasElement.width - 300, canvasElement.height / 2 + 100)
 }

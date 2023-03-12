@@ -6,9 +6,7 @@ export interface Dance {
   indices: number[]
   keyframes: NormalizedLandmarkList[]
   originalFps: number
-  lengthInSeconds: number
   beatsInDance: number
-  lastFrame: number
 }
 
 export type PythonLandmarkKeys =
@@ -90,9 +88,7 @@ const DANCES: Dance[] = [
     // TODO: better types for this function
     keyframes: dance2.keyframes.map(frame => scaleLandmarks(keyedToOrderedKeyframes(frame as unknown as Record<PythonLandmarkKeys, NormalizedLandmark>), 1.6, 1.8, 0, -0.2)),
     originalFps: 30,
-    beatsInDance: 4,
-    lengthInSeconds: 3 + 28 / 60,
-    lastFrame: Math.floor(4 * (3 + 28 / 60) * 30) // TODO: do this programatically
+    beatsInDance: 4
   }
 ]
 
