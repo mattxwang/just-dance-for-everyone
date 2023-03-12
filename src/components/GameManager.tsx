@@ -127,9 +127,9 @@ export default function GameManager (): JSX.Element {
     const halfSecBest = Math.max(...bestScores)
 
     // write text
-    writeOverallGradeInformation(canvasCtx, canvasElement, `${grade(overallScoreRef.current / overallScoreMoves.current)} [${(overallScoreRef.current / overallScoreMoves.current).toFixed(0)}] (${overallScoreRef.current.toFixed(0)})`)
+    writeOverallGradeInformation(canvasCtx, canvasElement, `${grade(overallScoreRef.current / overallScoreMoves.current)} [${overallScoreMoves.current === 0 ? '0' : (overallScoreRef.current / overallScoreMoves.current).toFixed(0)}] ${debugMode ? `(${overallScoreRef.current.toFixed(0)}) ` : ''}`)
     writeSongInformation(canvasCtx, canvasElement, songData.name, effectiveBpm)
-    writeDanceInformation(canvasCtx, canvasElement, onBeat, `${grade(halfSecBest)} (${halfSecBest.toFixed(1)})`)
+    writeDanceInformation(canvasCtx, canvasElement, onBeat, `${grade(halfSecBest)} ${debugMode ? `(${halfSecBest.toFixed(0)})` : ''}`)
   }
 
   function onPlay (): void {
