@@ -6,7 +6,8 @@ export interface Dance {
   indices: number[]
   keyframes: NormalizedLandmarkList[]
   originalFps: number
-  beatsPerSecond: number
+  lengthInSeconds: number
+  beatsInDance: number
 }
 
 export type PythonLandmarkKeys =
@@ -69,13 +70,14 @@ function keyedToOrderedKeyframes (keyframe: Record<PythonLandmarkKeys, Normalize
   return arr
 }
 
-const DANCES = [
+const DANCES: Dance[] = [
   {
     indices: dance2.indices,
     // TODO: better types for this function
     keyframes: dance2.keyframes.map(frame => keyedToOrderedKeyframes(frame as unknown as Record<PythonLandmarkKeys, NormalizedLandmark>)),
     originalFps: 30,
-    beatsPerSecond: 1
+    beatsInDance: 4,
+    lengthInSeconds: 3 + 28 / 60
   }
 ]
 
