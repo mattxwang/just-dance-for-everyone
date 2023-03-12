@@ -34,6 +34,16 @@ export function grade (score: number): string {
   return 'nice try!'
 }
 
+export function intensity (bpm: number): string {
+  if (bpm > 90) {
+    return 'high'
+  }
+  if (bpm > 60) {
+    return 'medium'
+  }
+  return 'low'
+}
+
 export function xyAngleRad (l1: NormalizedLandmark, l2: NormalizedLandmark): number {
   return Math.asin((l1.y - l2.y) / cartesianDistance(l1, l2))
 }
