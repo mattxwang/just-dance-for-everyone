@@ -8,6 +8,7 @@ export interface Dance {
   originalFps: number
   lengthInSeconds: number
   beatsInDance: number
+  lastFrame: number
 }
 
 export type PythonLandmarkKeys =
@@ -46,7 +47,7 @@ export type PythonLandmarkKeys =
   'RIGHT_FOOT_INDEX'
 
 export const IMPORTANT_LANDMARKS = new Set<PythonLandmarkKeys>([
-  'NOSE',
+  // 'NOSE',
   'LEFT_SHOULDER',
   'RIGHT_SHOULDER',
   'LEFT_ELBOW',
@@ -70,14 +71,28 @@ function keyedToOrderedKeyframes (keyframe: Record<PythonLandmarkKeys, Normalize
   return arr
 }
 
+function scaleLandmarks (landmarks: NormalizedLandmarkList, xscale: number, yscale: number, xtransform: number, ytransform: number): NormalizedLandmarkList {
+  return landmarks.map(landmark => {
+    // note: their type is broken :(
+    if (landmark === undefined) return undefined as unknown as NormalizedLandmark
+    return {
+      x: (landmark.x - 0.5) * xscale + 0.5 + xtransform,
+      y: (landmark.y - 0.5) * yscale + 0.5 + ytransform,
+      z: landmark.z,
+      visibility: landmark.visibility
+    }
+  })
+}
+
 const DANCES: Dance[] = [
   {
     indices: dance2.indices,
     // TODO: better types for this function
-    keyframes: dance2.keyframes.map(frame => keyedToOrderedKeyframes(frame as unknown as Record<PythonLandmarkKeys, NormalizedLandmark>)),
+    keyframes: dance2.keyframes.map(frame => scaleLandmarks(keyedToOrderedKeyframes(frame as unknown as Record<PythonLandmarkKeys, NormalizedLandmark>), 1.6, 1.8, 0, -0.2)),
     originalFps: 30,
     beatsInDance: 4,
-    lengthInSeconds: 3 + 28 / 60
+    lengthInSeconds: 3 + 28 / 60,
+    lastFrame: Math.floor(4 * (3 + 28 / 60) * 30) // TODO: do this programatically
   }
 ]
 

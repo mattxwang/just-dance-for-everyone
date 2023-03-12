@@ -28,13 +28,11 @@ export default function GameManager (): JSX.Element {
 
   // states for beat/dance work
   const currentDanceRef = useRef<Dance>(DANCES[0])
-  const currentDance = currentDanceRef.current
-  const [active, setActive] = useState<boolean>(false)
   const lastKeyframe = useRef<number>(0)
-  const currentFrameIndex = useRef<number>(0)
+  const currentFrameIndexRef = useRef<number>(0)
   const bestScoresRef = useRef<number[]>(new Array(15).fill(0))
-  const bestScores = bestScoresRef.current
 
+  const [active, setActive] = useState(false)
   const [onBeat, setOnBeat] = useState(false)
   const [songData, setSongData] = useState({
     name: '',
@@ -45,7 +43,15 @@ export default function GameManager (): JSX.Element {
   })
   const [multiplier, setMultiplier] = useState(1)
 
+  // ref helpers
+  const bestScores = bestScoresRef.current
+  const currentDance = currentDanceRef.current
+  const currentFrameIndex = currentFrameIndexRef.current
+  const effectiveBpm = songData.bpm === 0 ? 0 : songData.bpm * multiplier
+  const effectivePeriodInMilliseconds = songData.period * 1000 / multiplier
+
   function loadSong (file: string, name?: string): void {
+    setActive(false)
     if (audioContextContainer.current == null) {
       const AudioContext = window.AudioContext
       audioContextContainer.current = new AudioContext()
@@ -88,21 +94,21 @@ export default function GameManager (): JSX.Element {
     // get current dance move; diff based on last beat
     const { originalFps, lengthInSeconds, indices, keyframes } = currentDance
 
-    const nextFrameIndex = (currentFrameIndex.current + 1) % indices.length
+    const nextFrameIndex = (currentFrameIndex + 1) % indices.length
     const t = new Date().getTime() / 1000
 
     const timeSinceLastKeyframe = t - lastKeyframe.current
     const frameDiff = nextFrameIndex === 0
-      ? lengthInSeconds * originalFps - indices[currentFrameIndex.current]
-      : indices[nextFrameIndex] - indices[currentFrameIndex.current]
-    const newFrameThreshold = frameDiff / originalFps * (60 / songData.bpm)
+      ? lengthInSeconds * originalFps - indices[currentFrameIndex]
+      : indices[nextFrameIndex] - indices[currentFrameIndex]
+    const newFrameThreshold = frameDiff / originalFps
 
-    if (active && timeSinceLastKeyframe > newFrameThreshold) {
-      currentFrameIndex.current = nextFrameIndex
+    if (active && timeSinceLastKeyframe >= newFrameThreshold) {
+      currentFrameIndexRef.current = nextFrameIndex
       lastKeyframe.current = t
     }
 
-    const currentKeyframe = keyframes[currentFrameIndex.current]
+    const currentKeyframe = keyframes[currentFrameIndex]
 
     drawImportantLandmarks(canvasCtx, currentKeyframe)
 
@@ -114,7 +120,7 @@ export default function GameManager (): JSX.Element {
     drawAllLandmarks(canvasCtx, results.poseLandmarks)
 
     // then, userspace code :)
-    const score = Math.max((1 - 10 * diffPosesSubsetXY(results.poseLandmarks, currentKeyframe)), 0) * 100
+    const score = Math.max((1 - 10 * diffPosesSubsetXY(results.poseLandmarks, currentKeyframe)), 0) * 120
     bestScores.unshift(score)
     bestScores.pop()
 
@@ -123,67 +129,68 @@ export default function GameManager (): JSX.Element {
     // write text
     // TODO: change overall grade to be static
     writeOverallGradeInformation(canvasCtx, canvasElement, `${grade(halfSecBest)} (${halfSecBest.toFixed(1)})`)
-    writeSongInformation(canvasCtx, canvasElement, songData.name, clampBPM(songData.bpm))
+    writeSongInformation(canvasCtx, canvasElement, songData.name, effectiveBpm)
     writeDanceInformation(canvasCtx, canvasElement, onBeat, grade(halfSecBest))
   }
 
-  function onPlay (e: React.SyntheticEvent<HTMLAudioElement, Event>): void {
+  function onPlay (): void {
     // delay beat counter - wait for offset to start
-    setTimeout(() => {
-      // start counting frames
-      lastKeyframe.current = new Date().getTime() / 1000
+    // setTimeout(() => {
+    setActive(true)
+    // start counting frames
+    lastKeyframe.current = new Date().getTime() / 1000
 
-      if (danceVideoRef.current === null) return
+    if (danceVideoRef.current === null) return
+    const danceVideo = danceVideoRef.current
 
-      // start dance video
-      danceVideoRef.current.src = PUBLIC_DANCE_URL
-      danceVideoRef.current.style.border = '1px solid black'
-      setActive(true)
+    // show dance video
+    danceVideo.style.display = 'block'
 
-      // set beat on/off
-      beatIntervalContainer.current = setInterval(() => {
-        setOnBeat(true)
-        setTimeout(() => {
-          setOnBeat(false)
-        }, 200) // arbitrary - gives them 0.2s of grace
-      }, (songData.period * 1000) / multiplier)
+    // set beat on/off
+    beatIntervalContainer.current = setInterval(() => {
+      setOnBeat(true)
+      setTimeout(() => {
+        setOnBeat(false)
+      }, 200) // arbitrary - gives them 0.2s of grace
+    }, effectivePeriodInMilliseconds)
 
-      // set dance video loop
-      danceIntervalContainer.current = setInterval(() => {
-        if (danceVideoRef.current === null) return
+    // set dance video loop
+    danceVideo.playbackRate = multiplier
+    danceVideo.currentTime = 0
+    void danceVideo.play()
 
-        danceVideoRef.current.currentTime = 0
-        void danceVideoRef.current.play()
-      }, (songData.period * 1000) / multiplier * currentDance.beatsInDance)
-    }, songData.offset * 1000)
+    danceIntervalContainer.current = setInterval(() => {
+      danceVideo.currentTime = 0
+    }, effectivePeriodInMilliseconds * currentDance.beatsInDance)
+    // }, songData.offset * 1000)
   }
 
   function onPause (): void {
     setActive(false)
     clearInterval(beatIntervalContainer.current)
     clearInterval(danceIntervalContainer.current)
-    // TODO: this is hacky
     if (danceVideoRef.current === null) return
-    // @ts-expect-error hacky solution, hits a "null" URL
-    danceVideoRef.current.src = null
-    danceVideoRef.current.style.border = 'none'
+    danceVideoRef.current.style.display = 'none'
   }
 
   // boilerplate to start audio context, MP
   useEffect(() => {
     loadSong(`/songs/${PRESET_OPTIONS[0].value}`, PRESET_OPTIONS[0].value)
 
-    if (inputVideoRef.current === null) return
+    if (inputVideoRef.current === null || danceVideoRef.current === null) return
 
     const inputVideoElement = inputVideoRef.current
     poseRef.current = createPose()
     startCamera(poseRef.current, inputVideoElement)
+
+    danceVideoRef.current.src = PUBLIC_DANCE_URL
+    danceVideoRef.current.style.display = 'none'
   }, [])
 
   useEffect(() => {
     if (poseRef.current === null) return
     poseRef.current.onResults(onResults)
-  }, [active, songData])
+  }, [active, songData, onBeat, multiplier])
 
   return (<>
     <canvas width="1920px" height="1080px" style={{ width: '100vw' }} ref={canvasRef}></canvas>
@@ -193,9 +200,10 @@ export default function GameManager (): JSX.Element {
         position: 'absolute',
         top: 0, // note: this is a hard-coded value
         right: 0,
-        height: '25%'
+        height: '25%',
+        border: '1px solid black'
       }}
-      autoPlay
+      // autoPlay
       muted
     />
     <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onPause} controls></audio>
