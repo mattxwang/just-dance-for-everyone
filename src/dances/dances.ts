@@ -1,12 +1,16 @@
 import type { NormalizedLandmark, NormalizedLandmarkList } from '@mediapipe/pose'
 import { POSE_LANDMARKS } from '@mediapipe/pose'
+import dance1 from './dance_1.json'
 import dance2 from './dance_2.json'
-
+import dance3 from './dance_3.json'
+import dance4 from './dance_4.json'
 export interface Dance {
   indices: number[]
   keyframes: NormalizedLandmarkList[]
   originalFps: number
   beatsInDance: number
+  danceBpm: number
+  videoUrl: string
 }
 
 export type PythonLandmarkKeys =
@@ -82,14 +86,24 @@ function scaleLandmarks (landmarks: NormalizedLandmarkList, xscale: number, ysca
   })
 }
 
-const DANCES: Dance[] = [
-  {
-    indices: dance2.indices,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const genScaledDanceMove = ({ dance, danceBpm, videoUrl }: { dance: any, danceBpm: number, videoUrl: string }): Dance => {
+  return {
+    indices: dance.indices,
     // TODO: better types for this function
-    keyframes: dance2.keyframes.map(frame => scaleLandmarks(keyedToOrderedKeyframes(frame as unknown as Record<PythonLandmarkKeys, NormalizedLandmark>), 1.6, 1.8, 0, -0.2)),
+    keyframes: dance.keyframes.map((frame: Record<PythonLandmarkKeys, NormalizedLandmark>) => scaleLandmarks(keyedToOrderedKeyframes(frame), 1.6, 1.8, 0, -0.2)),
     originalFps: 30,
-    beatsInDance: 4
+    beatsInDance: 4,
+    danceBpm,
+    videoUrl
   }
-]
+}
+
+const DANCES: Dance[] = [
+  { dance: dance1, danceBpm: 97, videoUrl: 'dance_1.mp4' },
+  { dance: dance2, danceBpm: 97, videoUrl: 'dance_2.mp4' },
+  { dance: dance3, danceBpm: 97, videoUrl: 'dance_3.mp4' },
+  { dance: dance4, danceBpm: 115, videoUrl: 'dance_4.mp4' }
+].map(genScaledDanceMove)
 
 export default DANCES

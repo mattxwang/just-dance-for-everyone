@@ -1,3 +1,4 @@
+import DANCES from '../dances/dances'
 
 export function clampBPM (bpm: number): number {
   if (bpm > 160) {
@@ -47,3 +48,5 @@ export const MULTIPLIER_OPTIONS = [
     value: '0.25'
   }
 ]
+
+export const DANCE_OPTIONS = DANCES.map((dance, i) => { return { label: dance.videoUrl, value: String(i) } })

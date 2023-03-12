@@ -3,15 +3,12 @@ import { useEffect, useRef, useState } from 'react'
 import FileUpload from './beats-me/FileUpload'
 import { diffPosesSubsetXY, grade } from '../util/scores'
 import { guess } from 'web-audio-beat-detector'
-import { clampBPM, MULTIPLIER_OPTIONS, PRESET_OPTIONS } from '../util/beats'
+import { clampBPM, DANCE_OPTIONS, MULTIPLIER_OPTIONS, PRESET_OPTIONS } from '../util/beats'
 import Select from './beats-me/Select'
 import { createPose, drawAllLandmarks, drawImportantLandmarks, startCamera } from '../util/mp'
 import { writeDanceInformation, writeOverallGradeInformation, writeSongInformation, writeUIBackground } from '../util/ui'
 
 import DANCES from '../dances/dances'
-import type { Dance } from '../dances/dances'
-
-const PUBLIC_DANCE_URL = '/videos/dance_2.mp4'
 
 export default function GameManager (): JSX.Element {
   // Refs to UI elements
@@ -26,7 +23,6 @@ export default function GameManager (): JSX.Element {
   const danceIntervalContainer = useRef<number | undefined>(undefined)
 
   // states for beat/dance work
-  const currentDanceRef = useRef<Dance>(DANCES[0])
   const startDanceTimeInSecondsRef = useRef<number>(0)
   const currentFrameIndexRef = useRef<number>(0)
   const bestScoresRef = useRef<number[]>(new Array(15).fill(0))
@@ -34,6 +30,7 @@ export default function GameManager (): JSX.Element {
   const overallScoreMoves = useRef<number>(0)
 
   const [active, setActive] = useState(false)
+  const [currentDanceIndex, setCurrentDanceIndex] = useState<number>(0)
   const [onBeat, setOnBeat] = useState(false)
   const [songData, setSongData] = useState({
     name: '',
@@ -46,7 +43,7 @@ export default function GameManager (): JSX.Element {
 
   // ref helpers
   const bestScores = bestScoresRef.current
-  const currentDance = currentDanceRef.current
+  const currentDance = DANCES[currentDanceIndex]
   const effectiveBpm = songData.bpm === 0 ? 0 : songData.bpm * multiplier
   const effectiveOffsetInSeconds = songData.offset / multiplier / 1000
   const effectivePeriodInSeconds = songData.bpm === 0 ? 0 : (60 / effectiveBpm)
@@ -95,7 +92,7 @@ export default function GameManager (): JSX.Element {
     const { originalFps, indices, keyframes } = currentDance
 
     const timeSinceStartInSeconds = new Date().getTime() / 1000 - startDanceTimeInSecondsRef.current - effectiveOffsetInSeconds
-    const framesSinceStart = timeSinceStartInSeconds * originalFps * effectiveBpm / 85 // TODO: hard coded for dance 2
+    const framesSinceStart = timeSinceStartInSeconds * originalFps * effectiveBpm / currentDance.danceBpm
     if (active) {
       const nextFrameIndex = (currentFrameIndexRef.current + 1) % indices.length
       // console.log(`fss: ${framesSinceStart.toFixed(0)}, curr: ${indices[currentFrameIndexRef.current]}, nxt: ${indices[nextFrameIndex]}`)
@@ -157,7 +154,7 @@ export default function GameManager (): JSX.Element {
       }, effectivePeriodInSeconds * 1000)
 
       // set dance video loop
-      danceVideo.playbackRate = effectiveBpm / 85 // TODO: this is hard-coded for dnace 2
+      danceVideo.playbackRate = effectiveBpm / currentDance.danceBpm
       danceVideo.currentTime = 0
       void danceVideo.play()
 
@@ -187,14 +184,20 @@ export default function GameManager (): JSX.Element {
     poseRef.current = createPose()
     startCamera(poseRef.current, inputVideoElement)
 
-    danceVideoRef.current.src = PUBLIC_DANCE_URL
+    danceVideoRef.current.src = `/videos/${currentDance.videoUrl}`
     danceVideoRef.current.style.display = 'none'
   }, [])
 
   useEffect(() => {
     if (poseRef.current === null) return
     poseRef.current.onResults(onResults)
-  }, [active, songData, onBeat, multiplier, debugMode])
+  }, [active, songData, onBeat, multiplier, debugMode, currentDanceIndex])
+
+  useEffect(() => {
+    if (inputVideoRef.current === null || danceVideoRef.current === null) return
+
+    danceVideoRef.current.src = `/videos/${currentDance.videoUrl}`
+  }, [currentDanceIndex])
 
   return (<>
     <canvas width="1920px" height="1080px" style={{ width: '100vw' }} ref={canvasRef}></canvas>
@@ -225,6 +228,10 @@ export default function GameManager (): JSX.Element {
             <dt className="text-gray-500" id="preset-songs">Preset Songs</dt>
             <dd className="text-gray-900">
               <Select options={PRESET_OPTIONS} updateValue={(song) => { loadSong(`/songs/${song}`, song) }} />
+            </dd>
+            <dt className="text-gray-500" id="preset-songs">Preset Dances</dt>
+            <dd className="text-gray-900">
+              <Select options={DANCE_OPTIONS} updateValue={(x) => { setCurrentDanceIndex(Number(x)) }} />
             </dd>
             <dt className="text-gray-500" id="preset-songs">Debug Mode</dt>
             <dd className="text-gray-900">
