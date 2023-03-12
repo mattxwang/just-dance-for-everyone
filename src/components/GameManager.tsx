@@ -4,7 +4,6 @@ import FileUpload from './beats-me/FileUpload'
 import { diffPosesSubsetXY, grade } from '../util/scores'
 import { guess } from 'web-audio-beat-detector'
 import { clampBPM, MULTIPLIER_OPTIONS, PRESET_OPTIONS } from '../util/beats'
-import SongInformation from './beats-me/SongInformation'
 import Select from './beats-me/Select'
 import { createPose, drawAllLandmarks, drawImportantLandmarks, startCamera } from '../util/mp'
 import { writeDanceInformation, writeOverallGradeInformation, writeSongInformation, writeUIBackground } from '../util/ui'
@@ -206,25 +205,25 @@ export default function GameManager (): JSX.Element {
       }}
       muted
     />
-    <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onPause} controls></audio>
-    <div className="lg:grid lg:grid-cols-2 lg:gap-4">
-      <div className="max-w-md rounded overflow-hidden shadow-lg px-3 py-4 mb-2 bg-white text-left">
-        <SongInformation {...songData}/>
-        <dl
-          className="sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6 py-4"
-          role="radiogroup"
-          aria-labelledby="multiplier-label"
-        >
-          <dt className="text-gray-500" id="multiplier-label">Multiplier</dt>
-          <dd className="text-gray-900">
-            <Select options={MULTIPLIER_OPTIONS} updateValue={(x) => { setMultiplier(Number(x)) }} />
-          </dd>
-      </dl>
-      </div>
-      <div className="rounded overflow-hidden shadow-lg px-3 py-4 mb-2 bg-white">
-        <p className="mb-3">choose from our presets:</p>
-        <Select options={PRESET_OPTIONS} updateValue={(song) => { loadSong(`/songs/${song}`, song) }} />
-        <p className="my-3">or, upload a custom song</p>
+    <div className='rounded overflow-hidden shadow-lg px-3 py-4 bg-white' style={{ width: '100vw' }}>
+      <div className="sm:grid sm:grid-cols-3 sm:gap-2 my-2">
+        <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onPause} controls></audio>
+        <div className="text-left ">
+          <dl
+            className="sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6 py-4"
+            role="radiogroup"
+            aria-labelledby="multiplier-label"
+          >
+            <dt className="text-gray-500" id="multiplier-label">Speed Multiplier</dt>
+            <dd className="text-gray-900">
+              <Select options={MULTIPLIER_OPTIONS} updateValue={(x) => { setMultiplier(Number(x)) }} />
+            </dd>
+            <dt className="text-gray-500" id="preset-songs">Preset Songs</dt>
+            <dd className="text-gray-900">
+            <Select options={PRESET_OPTIONS} updateValue={(song) => { loadSong(`/songs/${song}`, song) }} />
+            </dd>
+          </dl>
+        </div>
         <FileUpload loadSong={loadSong}/>
       </div>
     </div>
