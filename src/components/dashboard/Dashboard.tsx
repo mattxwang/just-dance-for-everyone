@@ -1,13 +1,25 @@
 import { useRef, useState } from 'react'
 import { getUserInfo } from './User'
+import MyDropdown from './MyDropdown';
+import MyCard from './MyCard';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-export default function BeatsMeMain (): JSX.Element {
+export default function Dashboard (): JSX.Element {
 
-  getUserInfo()
+  const [selectedItem, setSelectedItem] = useState("day");
+
+  const info = getUserInfo()
 
   return (
-    <>
-    hi
-    </>
+    <div>
+      <MyDropdown 
+      selectedItem={selectedItem}
+      setSelectedItem={setSelectedItem}
+      />
+      <MyCard
+      selectedItem={selectedItem}
+      info={info}
+      />
+    </div>
   )
 }

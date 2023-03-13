@@ -1,27 +1,28 @@
 import * as user from '../../user.json'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-interface BPMAvgInfo {
+export interface BPMAvgInfo {
     total: number
     day: number
     week: number
     month: number
 }
 
-interface MinutesInfo {
+export interface MinutesInfo {
     total: number
     day: number
     week: number
     month: number
 }
 
-interface SongsInfo {
+export interface SongsInfo {
     total: number
     day: number
     week: number
     month: number
 }
 
-interface ScoreAvgInfo {
+export interface ScoreAvgInfo {
     total: number
     day: number
     week: number
@@ -29,7 +30,7 @@ interface ScoreAvgInfo {
 }
 
 
-interface User {
+export interface User {
     name: string
     bpmAvgInfo: BPMAvgInfo
     minutesInfo: MinutesInfo
