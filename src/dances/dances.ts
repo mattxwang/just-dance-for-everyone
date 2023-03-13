@@ -11,6 +11,7 @@ export interface Dance {
   beatsInDance: number
   danceBpm: number
   videoUrl: string
+  totalFrames: number
 }
 
 export type PythonLandmarkKeys =
@@ -87,7 +88,7 @@ function scaleLandmarks (landmarks: NormalizedLandmarkList, xscale: number, ysca
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const genScaledDanceMove = ({ dance, danceBpm, videoUrl }: { dance: any, danceBpm: number, videoUrl: string }): Dance => {
+const genScaledDanceMove = ({ dance, danceBpm, videoUrl, totalFrames }: { dance: any, danceBpm: number, videoUrl: string, totalFrames: number }): Dance => {
   return {
     indices: dance.indices,
     // TODO: better types for this function
@@ -95,15 +96,16 @@ const genScaledDanceMove = ({ dance, danceBpm, videoUrl }: { dance: any, danceBp
     originalFps: 30,
     beatsInDance: 4,
     danceBpm,
-    videoUrl
+    videoUrl,
+    totalFrames
   }
 }
 
 const DANCES: Dance[] = [
-  { dance: dance1, danceBpm: 97, videoUrl: 'dance_1.mp4' },
-  { dance: dance2, danceBpm: 97, videoUrl: 'dance_2.mp4' },
-  { dance: dance3, danceBpm: 97, videoUrl: 'dance_3.mp4' },
-  { dance: dance4, danceBpm: 115, videoUrl: 'dance_4.mp4' }
+  { dance: dance1, danceBpm: 97, videoUrl: 'dance_1.mp4', totalFrames: 73 },
+  { dance: dance2, danceBpm: 97, videoUrl: 'dance_2.mp4', totalFrames: 67 },
+  { dance: dance3, danceBpm: 97, videoUrl: 'dance_3.mp4', totalFrames: 67 },
+  { dance: dance4, danceBpm: 115, videoUrl: 'dance_4.mp4', totalFrames: 67 }
 ].map(genScaledDanceMove)
 
 export default DANCES

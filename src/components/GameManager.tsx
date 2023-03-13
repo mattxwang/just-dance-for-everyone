@@ -6,7 +6,7 @@ import { guess } from 'web-audio-beat-detector'
 import { clampBPM, DANCE_OPTIONS, MULTIPLIER_OPTIONS, PRESET_OPTIONS } from '../util/beats'
 import Select from './beats-me/Select'
 import { createPose, drawAllLandmarks, drawImportantLandmarks, startCamera } from '../util/mp'
-import { writeDanceInformation, writeOverallGradeInformation, writeSongInformation, writeUIBackground } from '../util/ui'
+import { drawUpcomingMoves, writeDanceInformation, writeOverallGradeInformation, writeSongInformation, writeUIBackground } from '../util/ui'
 
 import DANCES from '../dances/dances'
 
@@ -98,14 +98,14 @@ export default function GameManager (): JSX.Element {
 
     // target pose
     // get current dance move; diff based on last beat
-    const { originalFps, indices, keyframes } = currentDance
+    const { originalFps, indices, keyframes, totalFrames } = currentDance
 
-    const timeSinceStartInSeconds = new Date().getTime() / 1000 - startDanceTimeInSecondsRef.current - effectiveOffsetInSeconds
+    const timeSinceStartInSeconds = active ? new Date().getTime() / 1000 - startDanceTimeInSecondsRef.current - effectiveOffsetInSeconds : 0
     const framesSinceStart = timeSinceStartInSeconds * originalFps * effectiveBpm / currentDance.danceBpm
     if (active) {
       const nextFrameIndex = (currentFrameIndexRef.current + 1) % indices.length
       // console.log(`fss: ${framesSinceStart.toFixed(0)}, curr: ${indices[currentFrameIndexRef.current]}, nxt: ${indices[nextFrameIndex]}`)
-      if (framesSinceStart > indices[nextFrameIndex]) {
+      if (framesSinceStart > (nextFrameIndex === 0 ? totalFrames : indices[nextFrameIndex])) {
         currentFrameIndexRef.current = nextFrameIndex
       }
     }
@@ -117,6 +117,10 @@ export default function GameManager (): JSX.Element {
       drawImportantLandmarks(canvasCtx, currentKeyframe)
       flipCanvas()
     }
+
+    flipCanvas()
+    drawUpcomingMoves(canvasCtx, canvasElement, currentDance, currentFrameIndexRef.current, totalFrames, framesSinceStart)
+    flipCanvas()
 
     if (results.poseLandmarks === undefined) {
       return
