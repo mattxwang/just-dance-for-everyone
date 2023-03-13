@@ -1,4 +1,42 @@
+import { drawConnectors } from '@mediapipe/drawing_utils'
+import { POSE_CONNECTIONS } from '@mediapipe/pose'
+import type { Dance } from '../dances/dances'
 import { intensity } from './scores'
+
+const VERTICAL_TRANSLATE_FACTOR = 3
+
+export const drawUpcomingMoves = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement, dance: Dance, currentFrameIndex: number, totalFrames: number, framesSinceStart: number): void => {
+  const danceLength = dance.indices.length
+  let curr = currentFrameIndex
+  let next = (curr + 1) % danceLength
+  let relFrame = framesSinceStart
+
+  canvasCtx.scale(0.2, 0.2)
+  canvasCtx.translate(canvasElement.width / 2, canvasElement.height * VERTICAL_TRANSLATE_FACTOR)
+
+  canvasCtx.fillStyle = 'black'
+  canvasCtx.fillRect(canvasElement.width / 2, 0, 5, canvasElement.height)
+
+  let count = 0
+
+  for (let i = 0; i < danceLength; i++) {
+    const framesUntilCurrFrame = (totalFrames + dance.indices[next] - relFrame) % totalFrames
+    const translateDiff = framesUntilCurrFrame / totalFrames
+
+    count += translateDiff
+    canvasCtx.translate(-translateDiff * canvasElement.width, 0)
+    drawConnectors(
+      canvasCtx, dance.keyframes[next], POSE_CONNECTIONS,
+      { visibilityMin: 0.65, color: 'white' })
+
+    curr = next
+    next = (curr + 1) % danceLength
+    relFrame = dance.indices[curr]
+  }
+
+  canvasCtx.translate((count - 0.5) * canvasElement.width, -canvasElement.height * VERTICAL_TRANSLATE_FACTOR)
+  canvasCtx.scale(5, 5)
+}
 
 export const writeUIBackground = (canvasCtx: CanvasRenderingContext2D, canvasElement: HTMLCanvasElement): void => {
   canvasCtx.globalAlpha = 0.85

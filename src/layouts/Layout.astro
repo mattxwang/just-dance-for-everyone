@@ -44,4 +44,15 @@ const { title } = Astro.props;
 	.large-circle {
 		@apply w-36 h-36 rounded-full flex justify-center items-center text-center p-5 shadow-xl;
 	}
+
+	/* from: https://tailwindcomponents.com/component/toggle-switch */
+	.toggle-checkbox:checked {
+		@apply: right-0 border-green-400;
+		right: 0;
+		border-color: #68D391;
+	}
+	.toggle-checkbox:checked + .toggle-label {
+		@apply: bg-green-400;
+		background-color: #68D391;
+	}
 </style>
