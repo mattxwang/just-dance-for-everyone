@@ -5,11 +5,11 @@ def load_dance_keypoints(filename):
   return json.load(data)
 
 if __name__ == "__main__":
-  dance = load_dance_keypoints('dance_4_keypoints.json')
+  dance = load_dance_keypoints('dance_6_keypoints.json')
 
   keyframes = []
   for index in dance['impt_keypoints']:
     keyframes.append(dance["frames"][int(index)])
 
-  with open('out.json', 'w') as f:
+  with open('dance_6.json', 'w') as f:
     json.dump({'indices': dance['impt_keypoints'], 'keyframes': keyframes}, f, indent=2)

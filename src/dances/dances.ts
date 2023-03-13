@@ -4,6 +4,10 @@ import dance1 from './dance_1.json'
 import dance2 from './dance_2.json'
 import dance3 from './dance_3.json'
 import dance4 from './dance_4.json'
+import dance5 from './dance_5.json'
+import dance6 from './dance_6.json'
+import dance7 from './dance_7.json'
+import dance8 from './dance_8.json'
 export interface Dance {
   indices: number[]
   keyframes: NormalizedLandmarkList[]
@@ -88,24 +92,28 @@ function scaleLandmarks (landmarks: NormalizedLandmarkList, xscale: number, ysca
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const genScaledDanceMove = ({ dance, danceBpm, videoUrl, totalFrames }: { dance: any, danceBpm: number, videoUrl: string, totalFrames: number }): Dance => {
+const genScaledDanceMove = ({ dance, beatsInDance, repeatedLoopLength, videoUrl }: { dance: any, beatsInDance: number, repeatedLoopLength: number, videoUrl: string }): Dance => {
   return {
     indices: dance.indices,
     // TODO: better types for this function
-    keyframes: dance.keyframes.map((frame: Record<PythonLandmarkKeys, NormalizedLandmark>) => scaleLandmarks(keyedToOrderedKeyframes(frame), 1.6, 1.8, 0, -0.2)),
+    keyframes: dance.keyframes.map((frame: Record<PythonLandmarkKeys, NormalizedLandmark>) => scaleLandmarks(keyedToOrderedKeyframes(frame), 1.6, 1.8, 0, -0.2)), // this is an arbitrary scale
     originalFps: 30,
-    beatsInDance: 4,
-    danceBpm,
+    beatsInDance,
+    danceBpm: 60 * beatsInDance / repeatedLoopLength,
     videoUrl,
-    totalFrames
+    totalFrames: repeatedLoopLength * 30
   }
 }
 
 const DANCES: Dance[] = [
-  { dance: dance1, danceBpm: 97, videoUrl: 'dance_1.mp4', totalFrames: 73 },
-  { dance: dance2, danceBpm: 97, videoUrl: 'dance_2.mp4', totalFrames: 67 },
-  { dance: dance3, danceBpm: 97, videoUrl: 'dance_3.mp4', totalFrames: 67 },
-  { dance: dance4, danceBpm: 115, videoUrl: 'dance_4.mp4', totalFrames: 67 }
+  { dance: dance1, beatsInDance: 4, repeatedLoopLength: 3.09, videoUrl: 'dance_1.mp4' },
+  { dance: dance2, beatsInDance: 4, repeatedLoopLength: 3.23, videoUrl: 'dance_2.mp4' },
+  { dance: dance3, beatsInDance: 4, repeatedLoopLength: 2.95, videoUrl: 'dance_3.mp4' },
+  { dance: dance4, beatsInDance: 4, repeatedLoopLength: 2.40, videoUrl: 'dance_4.mp4' },
+  { dance: dance5, beatsInDance: 8, repeatedLoopLength: 8.74, videoUrl: 'dance_5.mp4' }, // TODO: too many keyframes
+  { dance: dance6, beatsInDance: 4, repeatedLoopLength: 3.02, videoUrl: 'dance_6.mp4' }, // TODO: too many keyframes
+  { dance: dance7, beatsInDance: 4, repeatedLoopLength: 3.02, videoUrl: 'dance_7.mp4' },
+  { dance: dance8, beatsInDance: 2, repeatedLoopLength: 1.15, videoUrl: 'dance_8.mp4' }
 ].map(genScaledDanceMove)
 
 export default DANCES

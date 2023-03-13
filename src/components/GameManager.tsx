@@ -231,7 +231,12 @@ export default function GameManager (): JSX.Element {
     />
     <div className='rounded overflow-hidden shadow-lg px-3 py-4 bg-white' style={{ width: '100vw' }}>
       <div className="sm:grid sm:grid-cols-3 sm:gap-2 my-2">
-        <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onPause} controls></audio>
+        <div>
+          <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onPause} controls></audio>
+          {
+            debugMode && <button onClick={() => { console.log(currentDance.indices[currentFrameIndexRef.current]); currentFrameIndexRef.current = (currentFrameIndexRef.current + 1) % currentDance.indices.length }}>force new frame</button>
+          }
+        </div>
         <div className="text-left ">
           <dl
             className="sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6 py-4"
