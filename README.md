@@ -1,54 +1,21 @@
-# Astro Starter Kit: Basics
+# just dance for everyone!
+
+This is a course project for CS205, by Disha & Matt. The quick pitch is Just Dance *as a service*: given arbitrary songs, we generate dance moves (from a select pool) and sync them to the song; then, users can play a Just Dance-like game where they have to mirror the on-frame dancer!
+
+It uses a smattering of technology, but mostly relies on MediaPipe (a Google productized version of BlazePose). The Python version of the library is used to process videos from the AIST++ dance dataset, and generate landmark keypoints + keyframes. This is passed on to the frontend, which uses the webcam to generate live landmark keypoints for the user, and then diffs it against the ground truth. This runs in a frame loop on a `<canvas>` element and usually doesn't dip below 30fps. The dance video + moves are synced to the song with a BPM heuristic based on some simple frequency analysis.
+
+This is more of a proof of concept and less of a productionized codebase. Sorry in advance!
+
+## Dev Setup
+
+The entire app runs in an Astro frontend. You'll use the typical node setup:
 
 ```
-npm create astro@latest -- --template basics
+$ npm install
+...
+$ npm run dev
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
+Normally, you'd then package this with `npm run build`, but unfortunately, MediaPipe's JS library can't properly be bundled by Astro (some sort of CJS incompatability, and ... the library *requires* an internet connection for dynamic module resolution??????????). So, **you can only run the app locally** (or with some running server).
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-![basics](https://user-images.githubusercontent.com/4677417/186188965-73453154-fdec-4d6b-9c34-cb35c248ae5b.png)
-
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   └── Card.astro
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                | Action                                           |
-| :--------------------- | :----------------------------------------------- |
-| `npm install`          | Installs dependencies                            |
-| `npm run dev`          | Starts local dev server at `localhost:3000`      |
-| `npm run build`        | Build your production site to `./dist/`          |
-| `npm run preview`      | Preview your build locally, before deploying     |
-| `npm run astro ...`    | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+There are some assorted python scripts in `bin/`; they're runnable in a `venv` with `requirements.txt`.
