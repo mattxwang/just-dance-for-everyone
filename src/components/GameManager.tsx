@@ -10,9 +10,16 @@ import { drawUpcomingMoves, writeDanceInformation, writeOverallGradeInformation,
 
 import DANCES from '../dances/dances'
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type EndCard = {
+  songsCompleted: number
+  secondsDanced: number
+}
+
 export default function GameManager (): JSX.Element {
   // Refs to UI elements
   const audioContextContainer = useRef<AudioContext | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
   const inputVideoRef = useRef<HTMLVideoElement | null>(null)
   const danceVideoRef = useRef<HTMLVideoElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -29,6 +36,7 @@ export default function GameManager (): JSX.Element {
   const bestScoresRef = useRef<number[]>(new Array(15).fill(0))
   const overallScoreRef = useRef<number>(0)
   const overallScoreMoves = useRef<number>(0)
+  const uniqueDances = useRef<Set<number>>(new Set())
 
   const [active, setActive] = useState(false)
   const [currentDanceIndex, setCurrentDanceIndex] = useState<number>(0)
@@ -42,6 +50,7 @@ export default function GameManager (): JSX.Element {
   })
   const [multiplier, setMultiplier] = useState(1)
   const [debugMode, setDebugMode] = useState(true)
+  const [endCard, setEndCard] = useState<EndCard | undefined>(undefined)
 
   // ref helpers
   const bestScores = bestScoresRef.current
@@ -155,6 +164,7 @@ export default function GameManager (): JSX.Element {
       // start counting frames
       startDanceTimeInSecondsRef.current = new Date().getTime() / 1000
       currentFrameIndexRef.current = 0
+      uniqueDances.current.add(currentDanceIndex)
 
       if (danceVideoRef.current === null) return
       const danceVideo = danceVideoRef.current
@@ -185,7 +195,9 @@ export default function GameManager (): JSX.Element {
 
       if (useRandomSongs) {
         changeDanceIntervalContainer.current = setInterval(() => {
-          setCurrentDanceIndex(Math.floor(Math.random() * DANCES.length))
+          const newDanceIndex = Math.floor(Math.random() * DANCES.length)
+          uniqueDances.current.add(newDanceIndex)
+          setCurrentDanceIndex(newDanceIndex)
         }, effectivePeriodInSeconds * 1000 * 16) // this is hardcoded for every 16 beats
       }
     }, (songData.offset + 1 / 15) * 1000)
@@ -198,6 +210,17 @@ export default function GameManager (): JSX.Element {
     clearInterval(changeDanceIntervalContainer.current)
     if (danceVideoRef.current === null) return
     danceVideoRef.current.style.display = 'none'
+  }
+
+  function onEnded (): void {
+    onPause()
+    if (audioRef.current === null) return
+    audioRef.current.currentTime = 0
+    audioRef.current.pause()
+    const newEndCard: EndCard = endCard === undefined ? { songsCompleted: 0, secondsDanced: 0 } : { ...endCard }
+    newEndCard.songsCompleted += 1
+    newEndCard.secondsDanced += audioRef.current.duration
+    setEndCard(newEndCard)
   }
 
   // boilerplate to start audio context, MP
@@ -217,7 +240,7 @@ export default function GameManager (): JSX.Element {
   useEffect(() => {
     if (poseRef.current === null) return
     poseRef.current.onResults(onResults)
-  }, [active, songData, onBeat, multiplier, debugMode, currentDanceIndex])
+  }, [active, songData, onBeat, multiplier, debugMode, currentDanceIndex, endCard])
 
   useEffect(() => {
     if (inputVideoRef.current === null || danceVideoRef.current === null) return
@@ -248,10 +271,11 @@ export default function GameManager (): JSX.Element {
     <div className='rounded overflow-hidden shadow-lg px-3 py-4 bg-white' style={{ width: '100vw' }}>
       <div className="sm:grid sm:grid-cols-3 sm:gap-2 my-2">
         <div>
-          <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onPause} controls></audio>
-          {
+          <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onEnded} ref={audioRef} controls></audio>
+          {/*
             debugMode && <button onClick={() => { console.log(currentDance.indices[currentFrameIndexRef.current]); currentFrameIndexRef.current = (currentFrameIndexRef.current + 1) % currentDance.indices.length }}>force new frame</button>
-          }
+          */}
+          <FileUpload loadSong={loadSong}/>
         </div>
         <div className="text-left ">
           <dl
@@ -303,7 +327,24 @@ export default function GameManager (): JSX.Element {
             </dd>
           </dl>
         </div>
-        <FileUpload loadSong={loadSong}/>
+        <div>
+          {endCard !== undefined && <dl
+            className="sm:grid sm:grid-cols-2 sm:gap-4 sm:px-6 py-4"
+          >
+            <dt className="text-gray-500">Songs Completed</dt>
+            <dd className="text-gray-900">
+              {endCard.songsCompleted}
+            </dd>
+            <dt className="text-gray-500">Minutes Danced</dt>
+            <dd className="text-gray-900">
+              {`${(endCard.secondsDanced / 60).toFixed(0)}m ${(endCard.secondsDanced % 60).toFixed(0)}s`}
+            </dd>
+            <dt className="text-gray-500">Unique Dances</dt>
+            <dd className="text-gray-900">
+              {uniqueDances.current.size}
+            </dd>
+          </dl>}
+        </div>
       </div>
     </div>
   </>)
