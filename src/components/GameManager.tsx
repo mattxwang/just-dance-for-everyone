@@ -112,7 +112,7 @@ export default function GameManager (): JSX.Element {
     const { originalFps, indices, keyframes, totalFrames } = currentDance
 
     const timeSinceStartInSeconds = active ? new Date().getTime() / 1000 - startDanceTimeInSecondsRef.current - effectiveOffsetInSeconds : 0
-    const framesSinceStart = timeSinceStartInSeconds * originalFps * effectiveBpm / currentDance.danceBpm * (currentDance.beatsInDance / 4)
+    const framesSinceStart = timeSinceStartInSeconds * originalFps * effectiveBpm / currentDance.danceBpm
     if (active) {
       const nextFrameIndex = (currentFrameIndexRef.current + 1) % indices.length
       // console.log(`fss: ${framesSinceStart.toFixed(0)}, curr: ${indices[currentFrameIndexRef.current]}, nxt: ${indices[nextFrameIndex]}`)
