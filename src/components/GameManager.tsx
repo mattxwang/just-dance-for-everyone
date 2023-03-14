@@ -21,6 +21,7 @@ export default function GameManager (): JSX.Element {
   // interval containers
   const beatIntervalContainer = useRef<number | undefined>(undefined)
   const danceIntervalContainer = useRef<number | undefined>(undefined)
+  const changeDanceIntervalContainer = useRef<number | undefined>(undefined)
 
   // states for beat/dance work
   const startDanceTimeInSecondsRef = useRef<number>(0)
@@ -32,6 +33,7 @@ export default function GameManager (): JSX.Element {
   const [active, setActive] = useState(false)
   const [currentDanceIndex, setCurrentDanceIndex] = useState<number>(0)
   const [onBeat, setOnBeat] = useState(false)
+  const [useRandomSongs, setUseRandomSongs] = useState(true)
   const [songData, setSongData] = useState({
     name: '',
     path: '',
@@ -101,7 +103,7 @@ export default function GameManager (): JSX.Element {
     const { originalFps, indices, keyframes, totalFrames } = currentDance
 
     const timeSinceStartInSeconds = active ? new Date().getTime() / 1000 - startDanceTimeInSecondsRef.current - effectiveOffsetInSeconds : 0
-    const framesSinceStart = timeSinceStartInSeconds * originalFps * effectiveBpm / currentDance.danceBpm
+    const framesSinceStart = timeSinceStartInSeconds * originalFps * effectiveBpm / currentDance.danceBpm * (currentDance.beatsInDance / 4)
     if (active) {
       const nextFrameIndex = (currentFrameIndexRef.current + 1) % indices.length
       // console.log(`fss: ${framesSinceStart.toFixed(0)}, curr: ${indices[currentFrameIndexRef.current]}, nxt: ${indices[nextFrameIndex]}`)
@@ -180,6 +182,12 @@ export default function GameManager (): JSX.Element {
         currentFrameIndexRef.current = 0
         startDanceTimeInSecondsRef.current = new Date().getTime() / 1000
       }, effectivePeriodInSeconds * currentDance.beatsInDance * 1000)
+
+      if (useRandomSongs) {
+        changeDanceIntervalContainer.current = setInterval(() => {
+          setCurrentDanceIndex(Math.floor(Math.random() * DANCES.length))
+        }, effectivePeriodInSeconds * 1000 * 16) // this is hardcoded for every 16 beats
+      }
     }, (songData.offset + 1 / 15) * 1000)
   }
 
@@ -187,6 +195,7 @@ export default function GameManager (): JSX.Element {
     setActive(false)
     clearInterval(beatIntervalContainer.current)
     clearInterval(danceIntervalContainer.current)
+    clearInterval(changeDanceIntervalContainer.current)
     if (danceVideoRef.current === null) return
     danceVideoRef.current.style.display = 'none'
   }
@@ -214,6 +223,13 @@ export default function GameManager (): JSX.Element {
     if (inputVideoRef.current === null || danceVideoRef.current === null) return
 
     danceVideoRef.current.src = `/videos/${currentDance.videoUrl}`
+
+    if (active) {
+      onPause()
+      onPlay()
+      if (poseRef.current === null) return
+      poseRef.current.onResults(onResults)
+    }
   }, [currentDanceIndex])
 
   return (<>
@@ -254,6 +270,21 @@ export default function GameManager (): JSX.Element {
             <dt className="text-gray-500" id="preset-songs">Preset Dances</dt>
             <dd className="text-gray-900">
               <Select options={DANCE_OPTIONS} updateValue={(x) => { setCurrentDanceIndex(Number(x)) }} />
+            </dd>
+            <dt className="text-gray-500" id="preset-songs">Random Songs</dt>
+            <dd className="text-gray-900">
+              <div className="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={useRandomSongs}
+                  onChange={() => { setUseRandomSongs(!useRandomSongs) }}
+                  name="toggle"
+                  id="toggle"
+                  className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                />
+                <label htmlFor="toggle" className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+              </div>
             </dd>
             <dt className="text-gray-500" id="preset-songs">Debug Mode</dt>
             <dd className="text-gray-900">
