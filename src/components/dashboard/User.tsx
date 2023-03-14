@@ -36,6 +36,8 @@ export interface User {
     minutesInfo: MinutesInfo
     songsInfo: SongsInfo
     scoreAvgInfo: ScoreAvgInfo
+    week: Attempt[]
+    month: Attempt[]
 }
 
 interface UserInfo {
@@ -92,7 +94,7 @@ export function getUserInfo(): User {
     let day = []
 
     let today = new Date()
-    const td = today.getDate() + 1
+    const td = today.getDate()
     const tm = today.getMonth() + 1
     const ty = today.getFullYear()
 
@@ -107,6 +109,7 @@ export function getUserInfo(): User {
         const attempt = user_attempts[i]
         const ts = attempt.timestamp * 1000
 
+
         if(rn - ts > 0) {
             if (rn - 30*dayMultiplier < ts) {
                 month.push(attempt)
@@ -117,7 +120,6 @@ export function getUserInfo(): User {
                 }
             }
         }
-
     } 
 
     const day_info = getInfo(day)
@@ -130,6 +132,6 @@ export function getUserInfo(): User {
     const songsInfo: SongsInfo = {total: all_info[2], day: day_info[2], week: week_info[2], month: month_info[2]}
     const scoreAvgInfo: ScoreAvgInfo = {total: all_info[3], day: day_info[3], week: week_info[3], month: month_info[3]}
 
-    const ret_user: User = {name: user_name, bpmAvgInfo, minutesInfo, songsInfo, scoreAvgInfo}
+    const ret_user: User = {name: user_name, bpmAvgInfo, minutesInfo, songsInfo, scoreAvgInfo, week, month}
     return ret_user
 }
