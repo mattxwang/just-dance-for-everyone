@@ -272,9 +272,12 @@ export default function GameManager (): JSX.Element {
       <div className="sm:grid sm:grid-cols-3 sm:gap-2 my-2">
         <div>
           <audio className="my-4" src={songData.path} onPlay={onPlay} onPause={onPause} onEnded={onEnded} ref={audioRef} controls></audio>
-          {/*
+          {
             debugMode && <button onClick={() => { console.log(currentDance.indices[currentFrameIndexRef.current]); currentFrameIndexRef.current = (currentFrameIndexRef.current + 1) % currentDance.indices.length }}>force new frame</button>
-          */}
+          }
+          {
+            debugMode && <button onClick={() => setTimeout(onPlay, 5000)}>start in 5s</button>
+          }
           <FileUpload loadSong={loadSong}/>
         </div>
         <div className="text-left ">

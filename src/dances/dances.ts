@@ -96,7 +96,7 @@ const genScaledDanceMove = ({ dance, beatsInDance, repeatedLoopLength, videoUrl 
   return {
     indices: dance.indices,
     // TODO: better types for this function
-    keyframes: dance.keyframes.map((frame: Record<PythonLandmarkKeys, NormalizedLandmark>) => scaleLandmarks(keyedToOrderedKeyframes(frame), 1.3, 1.3, 0, -0.2)), // this is an arbitrary scale
+    keyframes: dance.keyframes.map((frame: Record<PythonLandmarkKeys, NormalizedLandmark>) => scaleLandmarks(keyedToOrderedKeyframes(frame), 1.6, 1.8, 0, -0.2)), // this is an arbitrary scale
     originalFps: 30,
     beatsInDance,
     danceBpm: 60 * beatsInDance / repeatedLoopLength,
