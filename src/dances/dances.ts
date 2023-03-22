@@ -1,5 +1,5 @@
 import type { NormalizedLandmark, NormalizedLandmarkList } from '@mediapipe/pose'
-import { POSE_LANDMARKS } from '@mediapipe/pose'
+import mp_pose from '@mediapipe/pose'
 import dance1 from './dance_1.json'
 import dance2 from './dance_2.json'
 import dance3 from './dance_3.json'
@@ -8,6 +8,8 @@ import dance5 from './dance_5.json'
 import dance6 from './dance_6.json'
 import dance7 from './dance_7.json'
 import dance8 from './dance_8.json'
+
+const { POSE_LANDMARKS } = mp_pose
 export interface Dance {
   indices: number[]
   keyframes: NormalizedLandmarkList[]

@@ -1,7 +1,10 @@
-import { drawConnectors } from '@mediapipe/drawing_utils'
-import { POSE_CONNECTIONS } from '@mediapipe/pose'
+import drawing_utils from '@mediapipe/drawing_utils'
+import mp_pose from '@mediapipe/pose'
 import type { Dance } from '../dances/dances'
 import { intensity } from './scores'
+
+const { drawConnectors } = drawing_utils
+const { POSE_CONNECTIONS } = mp_pose
 
 const VERTICAL_TRANSLATE_FACTOR = 3
 
