@@ -1,7 +1,9 @@
-import { POSE_LANDMARKS } from '@mediapipe/pose'
+import mp_pose from '@mediapipe/pose'
 import type { NormalizedLandmark, NormalizedLandmarkList } from '@mediapipe/pose'
 import { IMPORTANT_LANDMARKS } from '../dances/dances'
 import { getPoseLandmarkIndexByKey } from './mp'
+
+const { POSE_LANDMARKS } = mp_pose
 
 /**
  * convex "smoothing" to reward good dances :)

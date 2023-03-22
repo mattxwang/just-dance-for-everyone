@@ -1,11 +1,15 @@
-import { Camera } from '@mediapipe/camera_utils'
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils'
+import camera_utils from '@mediapipe/camera_utils'
+import drawing_utils from '@mediapipe/drawing_utils'
 import type { NormalizedLandmarkList } from '@mediapipe/pose'
-import { Pose, POSE_CONNECTIONS, POSE_LANDMARKS_LEFT, POSE_LANDMARKS_NEUTRAL, POSE_LANDMARKS_RIGHT, POSE_LANDMARKS } from '@mediapipe/pose'
+import mp_pose from '@mediapipe/pose'
 import type { PythonLandmarkKeys } from '../dances/dances'
 import { IMPORTANT_LANDMARKS } from '../dances/dances'
 
-export const createPose = (): Pose => {
+const { Camera } = camera_utils
+const { drawConnectors, drawLandmarks } = drawing_utils
+const { Pose, POSE_CONNECTIONS, POSE_LANDMARKS_LEFT, POSE_LANDMARKS_NEUTRAL, POSE_LANDMARKS_RIGHT, POSE_LANDMARKS } = mp_pose
+
+export const createPose = (): mp_pose.Pose => {
   const pose = new Pose({
     locateFile: (file) => {
       return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
@@ -24,7 +28,7 @@ export const createPose = (): Pose => {
   return pose
 }
 
-export const startCamera = (pose: Pose | null, videoElement: HTMLVideoElement): void => {
+export const startCamera = (pose: mp_pose.Pose | null, videoElement: HTMLVideoElement): void => {
   const camera = new Camera(videoElement, {
     onFrame: async () => {
       if (pose === null) return
